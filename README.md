@@ -85,6 +85,7 @@ Pozostało jedynie zasilanie - użyłem 2 baterii od starej Nokii (zadziwiające
 Pomiędzy przetwornicą i baterią zastosowałem układ ładowania ogniw Li-ion z gniazdem USB-C, które wyprowadzone jest poza obudowę.
 
 Do pinu 1 (ADC1_0 - konwerter analogowo-cyfrowy) podłączyłem dzielnik napięcia na 1M-ohmowych rezystorach, aby zmniejszyć napięcie z max. 4,2V na max. 2,1V, bo pomimo że ESP ma ogromną impedancję wejściową w ADC, nie można podać napięcia większego niż 3,3V - chyba że celem jest wyprodukowanie świeczki :)
+Masy są już połączone przez układ zasilacza.
 
 ![Dzielnik napięcia](images/volt-div.jpg)
 
