@@ -4,7 +4,7 @@
 
 ---
 
-## 📋 Spis treści
+## Spis treści
 
 - [Opis projektu](#opis-projektu)
 - [Komponenty](#komponenty)
@@ -40,7 +40,7 @@ Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodo
 | Moduł ładowania Li-Ion | 1 |  |
 | Przetwornik buck-boost | 1 |  |
 | Konwerter USB-C (wtyczka) | 1 | Użyłem USB-A z przelotką na USB-C (wiem, że genialne) |
-| Rezystory | 2 | Dzielnik napięcia; 2x 1M-ohm | <!-- TODO: uzupełnij --> |
+| Rezystory 1M-ohm | 2 | Dzielnik napięcia | <!-- TODO: uzupełnij --> |
 
 ### Narzędzia
 
