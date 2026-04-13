@@ -73,14 +73,18 @@ Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodo
 ### Etap 1 — Analiza klawiatury
 
 <!-- TODO: Opisz, jak zbadałeś oryginalną klawiaturę. Czy używałeś USB HID, matrycy klawiszy, czy interfejsu PS/2? -->
-Zacząłem od rozpoznania jak w ogóle dobrać się do USB w klawiaturze. Multimetrem sprawdziłem które piny w złączu do piny na PCB.
+Zacząłem od rozpoznania jak w ogóle dobrać się do USB w klawiaturze. Multimetrem sprawdziłem, które piny w złączu to piny na PCB.
 ![Piny USB](images/usb-pinout.webp)
 ![Polutowane piny USB](images/usb-pcb.jpg)
 
+
+
 ### Etap 2 — Projekt elektroniki
+
 
 ![Wnętrze klawiatury z lewej](images/keyboard-left.jpg)
 ![Wnętrze klawiatury z prawej](images/keyboard-right.jpg)
+
 
 
 Próbowałem różnych wersji ESP32: ESP32, ESP32-S3, ESP32-C3. Stanęło na ESP32-S3, bo ma hardware'owe wsparcie jako USB host, czyli urządzenie, które przyjmie dane od innego, peryferyjnego urządzenia, tj. klawiatura. Inne modele płytki muszą emulować USB host, co spowalnia odpowiedź klawiatury, zżera więcej energii i ma to też swoje wady.
