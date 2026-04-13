@@ -74,6 +74,7 @@ Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodo
 
 <!-- TODO: Opisz, jak zbadałeś oryginalną klawiaturę. Czy używałeś USB HID, matrycy klawiszy, czy interfejsu PS/2? -->
 Zacząłem od rozpoznania jak w ogóle dobrać się do USB w klawiaturze. Multimetrem sprawdziłem, które piny w złączu to piny na PCB.
+
 ![Piny USB](images/usb-pinout.webp)
 ![Polutowane piny USB](images/usb-pcb.jpg)
 
