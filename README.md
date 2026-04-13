@@ -160,6 +160,7 @@ Z wnętrza obudowy klawiatury trzeba było usunąć trochę plastiku, aby wszyst
 - [ ] Dokończenie obudowy
 - [ ] Montaż większej baterii (np. celi z baterii laptopa)
 - [ ] Obsługa wbudowanego w klawiaturę dodatkowego USB
+- [ ] Sterowanie smart home opartym na ESP32
 
 ---
 
