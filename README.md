@@ -6,7 +6,6 @@
 
 ## Spis treści
 
-- [Opis projektu](#opis-projektu)
 - [Komponenty](#komponenty)
 - [Schemat połączeń](#schemat-połączeń)
 - [Przebieg realizacji](#przebieg-realizacji)
@@ -14,17 +13,6 @@
 - [Plany rozwoju](#plany-rozwoju)
 - [Literatura i zasoby](#literatura-i-zasoby)
 - [Licencja](#licencja)
-
----
-
-## Opis projektu
-
-<!-- TODO: Opisz cel projektu. Jaką klawiaturę przerobiłeś? Dlaczego wybrałeś ESP32-S3 i BLE? -->
-
-Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodową BLE przy minimalnej ingerencji w oryginalny sprzęt. Mikrokontroler **ESP32-S3** pełni rolę pośrednika: odbiera sygnały z matrycy klawiszy lub bezpośrednio z interfejsu USB klawiatury i wysyła je jako zdarzenia HID przez Bluetooth Low Energy.
-
-**Klawiatura:** <!-- TODO: np. „Logitech K120", „mechaniczna klawiatura XYZ" -->  
-**Cel:** bezprzewodowa praca z urządzeniami obsługującymi BLE HID (laptop, tablet, smartfon)
 
 ---
 
