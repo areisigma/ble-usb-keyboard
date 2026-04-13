@@ -38,18 +38,19 @@ Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodo
 | Komponent | Ilość | Uwagi |
 |-----------|-------|-------|
 | ESP32-S3 (moduł/devkit) | 1 | <!-- TODO: podaj konkretny model, np. ESP32-S3-DevKitC-1 --> |
-| Klawiatura USB do przeróbki | 1 | <!-- TODO: model klawiatury --> |
-| Akumulator Li-Ion / LiPo | 1 | <!-- TODO: pojemność, np. 1000 mAh --> |
-| Moduł ładowania TP4056 | 1 | opcjonalnie |
-| Konwerter USB-A (wtyczka) | 1 | do podłączenia istniejącego kabla klawiatury |
-| Kondensatory, rezystory | wg schematu | <!-- TODO: uzupełnij --> |
-| Obudowa / mocowanie | — | <!-- TODO: druk 3D, modyfikacja oryginału itp. --> |
+| Razer Blackwidow Chroma V2 (USB) | 1 | <!-- TODO: model klawiatury --> |
+| Akumulator Li-Ion | 2 | 2x 890mAh |
+| Moduł ładowania Li-Ion | 1 |  |
+| Przetwornik buck-boost | 1 |  |
+| Konwerter USB-C (wtyczka) | 1 | Użyłem USB-A z przelotką na USB-C (wiem, że genialne) |
+| Rezystory | 2 | Dzielnik napięcia; 2x 1M-ohm | <!-- TODO: uzupełnij --> |
 
 ### Narzędzia
 
-- Lutownica + cyna
+- Lutownica + cyna + topnik (np. kalafonia)
 - Multimetr
-- <!-- TODO: inne narzędzia -->
+- Zapalniczka/pistolet na klej na gorąco + klej
+- Przewody do połączeń
 
 ---
 
@@ -68,50 +69,6 @@ Ten projekt pokazuje, jak przerobić standardową klawiaturę USB na bezprzewodo
   [Akumulator]
 ```
 
-> Szczegółowy schemat będzie dostępny w: `docs/schematic.pdf` *(do dodania)*
-
----
-
-## Oprogramowanie i środowisko
-
-### Wymagania
-
-- [Arduino IDE](https://www.arduino.cc/en/software) ≥ 2.x **lub** [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/latest/) ≥ 5.x
-- Wsparcie dla płytki ESP32-S3:
-  - Arduino: dodaj URL w menedżerze płytek: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
-  - ESP-IDF: oficjalne SDK Espressif
-- Biblioteki:
-  - <!-- TODO: np. `ESP32-BLE-Keyboard` (https://github.com/T-vK/ESP32-BLE-Keyboard) -->
-  - <!-- TODO: np. `USB Host Shield Library 2.0` jeśli używasz USB Host -->
-
-### Konfiguracja środowiska
-
-```bash
-# Klonowanie repozytorium
-git clone https://github.com/areisigma/ble-usb-keyboard.git
-cd ble-usb-keyboard
-
-# TODO: opisz kolejne kroki instalacji zależności
-```
-
----
-
-## Instalacja i konfiguracja
-
-1. **Zainstaluj środowisko** zgodnie z sekcją [Oprogramowanie i środowisko](#oprogramowanie-i-środowisko).
-2. **Otwórz projekt** w Arduino IDE / ESP-IDF.
-3. **Dostosuj konfigurację** w pliku `config.h` *(do dodania)*:
-   ```c
-   // TODO: przykładowe parametry konfiguracyjne
-   #define DEVICE_NAME   "BLE Keyboard"
-   #define BATTERY_PIN   GPIO_NUM_1
-   ```
-4. **Wgraj firmware** na ESP32-S3:
-   - Podłącz płytkę przez USB.
-   - Wybierz właściwą płytkę i port w IDE.
-   - Kliknij *Upload* / uruchom `idf.py flash`.
-5. **Sparuj klawiaturę** z urządzeniem docelowym przez Bluetooth.
-
 ---
 
 ## Przebieg realizacji
@@ -125,7 +82,10 @@ Zacząłem od rozpoznania jak w ogóle dobrać się do USB w klawiaturze. Multim
 
 ### Etap 2 — Projekt elektroniki
 
-<!-- TODO: Opisz decyzje projektowe: wybór ESP32-S3, zasilanie, integracja z klawiaturą. -->
+![Wnętrze klawiatury z lewej](images/keyboard-left.jpg)
+![Wnętrze klawiatury z prawej](images/keyboard-right.jpg)
+
+
 Próbowałem różnych wersji ESP32: ESP32, ESP32-S3, ESP32-C3. Stanęło na ESP32-S3, bo ma hardware'owe wsparcie jako USB host, czyli urządzenie, które przyjmie dane od innego, peryferyjnego urządzenia, tj. klawiatura. Inne modele płytki muszą emulować USB host, co spowalnia odpowiedź klawiatury, zżera więcej energii i ma to też swoje wady.
 
 Zatem ESP32-S3 ogranicza się do biblioteki obsługującej układ USB, a podłączenie płytki do klawiatury odbywa się przez podpięcie w odpowiedni port ESP wlutowanego w piny USB w klawiaturze kabelka USB-C.
@@ -163,23 +123,23 @@ Z wnętrza obudowy klawiatury trzeba było usunąć trochę plastiku, aby wszyst
 
 ---
 
-## Zdjęcia i wyniki
+<!--## Zdjęcia i wyniki-->
 
 <!-- TODO: Wstaw zdjęcia gotowego projektu. -->
 <!-- Przykład:
 ![Wnętrze klawiatury](docs/images/inside.jpg)
 ![Gotowy projekt](docs/images/finished.jpg)
 -->
-
+<!--
 | Widok | Opis |
 |-------|------|
-| *![Wnętrze klawiatury z lewej](images/keyboard-left.jpg)* | Wnętrze klawiatury z ESP32-S3 |
-| *![Wnętrze klawiatury z prawej](images/keyboard-right.jpg)* | Wnętrze klawiatury z ESP32-S3 |
+| ** | Wnętrze klawiatury z ESP32-S3 |
+| ** | Wnętrze klawiatury z ESP32-S3 |
 
 **Czas pracy na baterii:*2-3h* (przy 1780mAh) <!-- TODO: np. „~2 tygodnie przy codziennym użytkowaniu" -->  
-**Opóźnienie (latency):*<50ms* <!-- TODO: np. „< 10 ms" -->
-
----
+<!--**Opóźnienie (latency):*<50ms* <!-- TODO: np. „< 10 ms" -->
+<!--
+--- -->
 
 ## Znane problemy
 
