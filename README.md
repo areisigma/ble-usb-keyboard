@@ -135,6 +135,19 @@ Z wnętrza obudowy klawiatury trzeba było usunąć trochę plastiku, aby wszyst
 <!--
 --- -->
 
+## Update
+
+Teraz można programować ESP32-S3 przez zewnętrzny port USB-C
+
+![usb-c](images/usb-c-uart.jpg)
+
+Dodałem też LED, która zaczyna świecić, gdy napięcie spadnie do 10% (około 3,1V)
+
+![LED](images/battery-led.jpg)
+
+
+---
+
 ## Znane problemy
 
 <!-- TODO: Opisz napotkane problemy i ich rozwiązania lub obecne ograniczenia. -->
@@ -142,17 +155,25 @@ Z wnętrza obudowy klawiatury trzeba było usunąć trochę plastiku, aby wszyst
 - [ ] Nie działa z moim komputerem (mam zły adapter bluetooth, lub sterowniki w komputerze działają niepoprawnie)
 - [ ] ESP odczytuje niepoprawny stan baterii w związku z prawami natury znanymi szerzej jako prawo Ohma
 
+### Rozwiązanie tych problemów
+
+Błąd ze sterownikami obszedłem dzięki pocket dongle na esp32s3 (oddzielny projekt).
+
+Niepoprawnie odczytywany stan baterii ma stałą wartość 0,3V błędu, więc dodaję 0,3V dla kompensacji.
 ---
 
 ## Plany rozwoju
 
 <!-- TODO: Co chciałbyś jeszcze dodać lub ulepszyć? -->
 
-- [ ] Połączenie USB-C do programowania ESP32-S3
 - [ ] Dokończenie obudowy
 - [ ] Montaż większej baterii (np. celi z baterii laptopa)
 - [ ] Obsługa wbudowanego w klawiaturę dodatkowego USB
 - [ ] Sterowanie smart home opartym na ESP32
+
+### Zrealizowane
+
+- [ ] Połączenie USB-C do programowania ESP32-S3
 
 ---
 
