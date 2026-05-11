@@ -160,6 +160,7 @@ Dodałem też LED, która zaczyna świecić, gdy napięcie spadnie do 10% (okoł
 Błąd ze sterownikami obszedłem dzięki pocket dongle na esp32s3 (oddzielny projekt).
 
 Niepoprawnie odczytywany stan baterii ma stałą wartość 0,3V błędu, więc dodaję 0,3V dla kompensacji.
+
 ---
 
 ## Plany rozwoju
