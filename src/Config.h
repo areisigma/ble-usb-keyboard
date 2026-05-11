@@ -36,6 +36,9 @@
 /** @brief Resistor from ADC pin to GND (ohms) - 1M */
 #define BATTERY_R2 1000000.0f
 
+/** @brief Constant voltage offset added to compensate for ESP32 ADC under-reading (volts) */
+#define BATTERY_VOLTAGE_OFFSET 0.3f
+
 /** @brief How often to read battery voltage and update BLE (milliseconds) */
 #define BATTERY_UPDATE_INTERVAL_MS 30000UL
 
@@ -50,5 +53,14 @@
  * Set to -1 to disable, or use your board's built-in LED pin
  */
 #define LED_FEEDBACK_PIN 2
+
+/**
+ * @brief GPIO pin for the low-battery LED indicator
+ * Set to -1 to disable
+ */
+#define BATTERY_LOW_LED_PIN 3
+
+/** @brief Battery level (%) at or below which the low-battery LED turns on */
+#define BATTERY_LOW_THRESHOLD 10
 
 #endif // CONFIG_H

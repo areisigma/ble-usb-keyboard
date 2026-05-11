@@ -15,7 +15,7 @@ static uint8_t readBatteryPercent() {
   }
   float raw = sum / (float)NUM_SAMPLES;
   float v_adc = raw * 3.3f / 4095.0f;
-  float v_bat = v_adc * (BATTERY_R1 + BATTERY_R2) / BATTERY_R2;
+  float v_bat = v_adc * (BATTERY_R1 + BATTERY_R2) / BATTERY_R2 + BATTERY_VOLTAGE_OFFSET;
 
   Serial.printf("[Battery] ADC=%.0f, V_adc=%.3fV, V_bat=%.3fV\n", raw, v_adc, v_bat);
 
@@ -64,6 +64,12 @@ void Bridge::begin() {
   // 5. Configure battery ADC pin
   analogSetPinAttenuation(BATTERY_ADC_PIN, ADC_11db);
   analogReadResolution(12);
+
+  // 6. Configure low-battery LED pin
+  if (BATTERY_LOW_LED_PIN >= 0) {
+    pinMode(BATTERY_LOW_LED_PIN, OUTPUT);
+    digitalWrite(BATTERY_LOW_LED_PIN, LOW);
+  }
 }
 
 void Bridge::loop() {
@@ -90,6 +96,9 @@ void Bridge::loop() {
     uint8_t pct = readBatteryPercent();
     _bleManager.setBatteryLevel(pct);
     Serial.printf("[Battery] Level: %d%%\n", pct);
+    if (BATTERY_LOW_LED_PIN >= 0) {
+      digitalWrite(BATTERY_LOW_LED_PIN, pct <= BATTERY_LOW_THRESHOLD ? HIGH : LOW);
+    }
   }
 }
 
