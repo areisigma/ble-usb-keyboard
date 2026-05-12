@@ -1,5 +1,6 @@
 #include "NVSUtils.h"
 #include <Arduino.h>
+#include <Preferences.h>
 #include <nvs.h>
 #include <nvs_flash.h>
 
@@ -141,4 +142,37 @@ void NVSUtils::saveSlotBonds(uint8_t slot) {
   Serial.printf("[System] Saving BLE bonds for slot %d to '%s'...\n", slot + 1,
                 slot_ns);
   copyNamespace("nimble_bond", slot_ns);
+}
+
+void NVSUtils::saveBatterySample(float voltage, uint8_t percent, uint32_t minutes) {
+  BatterySample buf[MAX_BATTERY_SAMPLES] = {};
+  uint8_t head = 0, count = 0;
+
+  Preferences prefs;
+  prefs.begin("bat-hist", false);
+  head  = prefs.getUChar("head",  0);
+  count = prefs.getUChar("count", 0);
+  if (count > 0) {
+    prefs.getBytes("data", buf, sizeof(buf));
+  }
+
+  buf[head] = {voltage, minutes, percent};
+  head = (head + 1) % MAX_BATTERY_SAMPLES;
+  if (count < MAX_BATTERY_SAMPLES) count++;
+
+  prefs.putUChar("head",  head);
+  prefs.putUChar("count", count);
+  prefs.putBytes("data",  buf, sizeof(buf));
+  prefs.end();
+}
+
+void NVSUtils::loadBatteryHistory(BatterySample *out, uint8_t &count, uint8_t &head) {
+  Preferences prefs;
+  prefs.begin("bat-hist", true);
+  head  = prefs.getUChar("head",  0);
+  count = prefs.getUChar("count", 0);
+  if (count > 0) {
+    prefs.getBytes("data", out, sizeof(BatterySample) * MAX_BATTERY_SAMPLES);
+  }
+  prefs.end();
 }

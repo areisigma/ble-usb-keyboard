@@ -6,34 +6,111 @@ uint8_t Bridge::_currentSlot = 0;
 BLEManager Bridge::_bleManager;
 Preferences Bridge::_preferences;
 
-static uint8_t readBatteryPercent() {
+static void readBattery(float &outVoltage, uint8_t &outPercent) {
   const int NUM_SAMPLES = 16;
   long sum = 0;
   for (int i = 0; i < NUM_SAMPLES; i++) {
     sum += analogRead(BATTERY_ADC_PIN);
     delay(2);
   }
-  float raw = sum / (float)NUM_SAMPLES;
+  float raw   = sum / (float)NUM_SAMPLES;
   float v_adc = raw * 3.3f / 4095.0f;
   float v_bat = v_adc * (BATTERY_R1 + BATTERY_R2) / BATTERY_R2 + BATTERY_VOLTAGE_OFFSET;
 
   Serial.printf("[Battery] ADC=%.0f, V_adc=%.3fV, V_bat=%.3fV\n", raw, v_adc, v_bat);
 
+  outVoltage = v_bat;
+
   // Li-ion/LiPo voltage-to-percent lookup table
-  const float voltages[] = {4.2f, 3.9f, 3.7f, 3.5f, 3.0f};
+  const float   voltages[] = {4.2f, 3.9f, 3.7f, 3.5f, 3.0f};
   const uint8_t percents[] = {100,   75,   50,   25,    0};
   const int TABLE_SIZE = 5;
 
-  if (v_bat >= voltages[0]) return 100;
-  if (v_bat <= voltages[TABLE_SIZE - 1]) return 0;
+  if (v_bat >= voltages[0])           { outPercent = 100; return; }
+  if (v_bat <= voltages[TABLE_SIZE-1]){ outPercent = 0;   return; }
 
   for (int i = 0; i < TABLE_SIZE - 1; i++) {
     if (v_bat <= voltages[i] && v_bat >= voltages[i + 1]) {
       float t = (v_bat - voltages[i + 1]) / (voltages[i] - voltages[i + 1]);
-      return (uint8_t)(percents[i + 1] + t * (float)(percents[i] - percents[i + 1]));
+      outPercent = (uint8_t)(percents[i + 1] + t * (float)(percents[i] - percents[i + 1]));
+      return;
     }
   }
-  return 0;
+  outPercent = 0;
+}
+
+static void printVoltageChart(const BatterySample *samples, uint8_t count, uint8_t start) {
+  const float V_MIN = 3.0f, V_MAX = 4.2f;
+  const int   ROWS  = 10;
+  const float step  = (V_MAX - V_MIN) / ROWS;
+
+  int sampleRow[MAX_BATTERY_SAMPLES];
+  for (int i = 0; i < count; i++) {
+    uint8_t idx = (start + i) % MAX_BATTERY_SAMPLES;
+    int r = (int)((V_MAX - samples[idx].voltage) / step);
+    if (r < 0)     r = 0;
+    if (r >= ROWS) r = ROWS - 1;
+    sampleRow[i] = r;
+  }
+
+  Serial.println("\n--- Voltage Chart (oldest left, newest right) ---");
+  for (int row = 0; row < ROWS; row++) {
+    float rowV = V_MAX - row * step;
+    Serial.printf("%.2fV |", rowV);
+    for (int i = 0; i < count; i++) {
+      Serial.print(sampleRow[i] == row ? '*' : ' ');
+    }
+    Serial.println();
+  }
+  Serial.printf("%.2fV +", V_MIN);
+  for (int i = 0; i < count; i++) Serial.print('-');
+  Serial.println();
+  if (count > 0) {
+    uint8_t sN = (uint8_t)((start + count - 1) % MAX_BATTERY_SAMPLES);
+    Serial.printf("       t_first=+%u min  t_last=+%u min  (%d samples x ~5 min)\n",
+                  samples[start].minutes, samples[sN].minutes, count);
+  }
+  Serial.println("-------------------------------------------------");
+}
+
+static void printBatteryStatus() {
+  float   voltage;
+  uint8_t pct;
+  readBattery(voltage, pct);
+
+  Serial.println("\n=== BATTERY STATUS ===");
+  Serial.printf("Current:  %.3fV  %d%%\n", voltage, pct);
+
+  BatterySample history[MAX_BATTERY_SAMPLES] = {};
+  uint8_t count = 0, head = 0;
+  NVSUtils::loadBatteryHistory(history, count, head);
+
+  Serial.printf("Stored:   %d / %d samples\n", count, MAX_BATTERY_SAMPLES);
+
+  if (count == 0) {
+    Serial.println("(no history yet - first save after 5 min of uptime)");
+    Serial.println("======================");
+    return;
+  }
+
+  uint8_t start = (count < MAX_BATTERY_SAMPLES) ? 0 : head;
+
+  Serial.println("\n  #  | +min  | Voltage |  %");
+  Serial.println("-----|-------|---------|-----");
+  for (int i = 0; i < count; i++) {
+    uint8_t idx = (start + i) % MAX_BATTERY_SAMPLES;
+    Serial.printf("%4d | %5u | %.3fV  | %3d%%\n",
+                  i + 1, history[idx].minutes, history[idx].voltage, history[idx].percent);
+  }
+
+  printVoltageChart(history, count, start);
+  Serial.println("======================");
+}
+
+static void handleSerialCommand(const String &cmd) {
+  if (cmd.equalsIgnoreCase("battery status")) {
+    printBatteryStatus();
+  }
 }
 
 void Bridge::begin() {
@@ -93,11 +170,38 @@ void Bridge::loop() {
   static unsigned long lastBattery = 0;
   if (millis() - lastBattery > BATTERY_UPDATE_INTERVAL_MS) {
     lastBattery = millis();
-    uint8_t pct = readBatteryPercent();
+    float voltage;
+    uint8_t pct;
+    readBattery(voltage, pct);
     _bleManager.setBatteryLevel(pct);
     Serial.printf("[Battery] Level: %d%%\n", pct);
     if (BATTERY_LOW_LED_PIN >= 0) {
       digitalWrite(BATTERY_LOW_LED_PIN, pct <= BATTERY_LOW_THRESHOLD ? HIGH : LOW);
+    }
+  }
+
+  static unsigned long lastHistorySave = 0;
+  if (millis() - lastHistorySave > BATTERY_HISTORY_INTERVAL_MS) {
+    lastHistorySave = millis();
+    float voltage;
+    uint8_t pct;
+    readBattery(voltage, pct);
+    uint32_t minutes = millis() / 60000UL;
+    NVSUtils::saveBatterySample(voltage, pct, minutes);
+    Serial.printf("[Battery] History saved: %.3fV %d%% at +%u min\n", voltage, pct, minutes);
+  }
+
+  static String serialCmd;
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      serialCmd.trim();
+      if (serialCmd.length() > 0) {
+        handleSerialCommand(serialCmd);
+      }
+      serialCmd = "";
+    } else {
+      serialCmd += c;
     }
   }
 }

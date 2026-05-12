@@ -42,6 +42,9 @@
 /** @brief How often to read battery voltage and update BLE (milliseconds) */
 #define BATTERY_UPDATE_INTERVAL_MS 30000UL
 
+/** @brief How often to save a battery reading to flash history (milliseconds) - 5 minutes */
+#define BATTERY_HISTORY_INTERVAL_MS 300000UL
+
 /** @brief Number of available device slots (maximum 3 recommended) */
 #define NUM_DEVICE_SLOTS 3
 
