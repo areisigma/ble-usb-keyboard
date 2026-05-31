@@ -5,6 +5,8 @@
 uint8_t Bridge::_currentSlot = 0;
 BLEManager Bridge::_bleManager;
 Preferences Bridge::_preferences;
+unsigned long Bridge::_lastKeyboardActivity = 0;
+Bridge::PendingKeyReport Bridge::_pendingReport = {{0}, 0, false};
 
 static void readBattery(float &outVoltage, uint8_t &outPercent) {
   const int NUM_SAMPLES = 16;
@@ -147,6 +149,9 @@ void Bridge::begin() {
     pinMode(BATTERY_LOW_LED_PIN, OUTPUT);
     digitalWrite(BATTERY_LOW_LED_PIN, LOW);
   }
+
+  // 7. Record startup time as baseline for the idle timeout
+  _lastKeyboardActivity = millis();
 }
 
 void Bridge::loop() {
@@ -160,11 +165,27 @@ void Bridge::loop() {
                   connected ? "Connected" : "Disconnected", _currentSlot + 1);
   }
 
+  // BLE idle timeout: disable BLE after BLE_IDLE_TIMEOUT_MS of keyboard inactivity
+  if (!_bleManager.isSleeping() &&
+      (millis() - _lastKeyboardActivity > BLE_IDLE_TIMEOUT_MS)) {
+    Serial.println("[BLE] Keyboard idle - disabling BLE to save battery");
+    _bleManager.stop();
+  }
+
+  // Send queued report as soon as BLE connection is re-established
+  if (_pendingReport.valid && connected) {
+    _bleManager.sendKeyboardReport(_pendingReport.keys, _pendingReport.modifiers);
+    _pendingReport.valid = false;
+    Serial.println("[BLE] Sent queued keyboard report after reconnect");
+  }
+
   static unsigned long lastStatus = 0;
   if (millis() - lastStatus > 5000) {
     lastStatus = millis();
-    Serial.printf("[Status] Slot %d | BLE: %s\n", _currentSlot + 1,
-                  connected ? "CONNECTED" : "waiting for pairing...");
+    const char *bleState = _bleManager.isSleeping() ? "SLEEPING"
+                           : connected              ? "CONNECTED"
+                                                    : "waiting for pairing...";
+    Serial.printf("[Status] Slot %d | BLE: %s\n", _currentSlot + 1, bleState);
   }
 
   static unsigned long lastBattery = 0;
@@ -270,8 +291,21 @@ void Bridge::onKeyboardReport(const uint8_t *data, size_t length) {
                 kb_report->key[2], kb_report->key[3], kb_report->key[4],
                 kb_report->key[5]);
 
-  // Forward to BLE
-  _bleManager.sendKeyboardReport(kb_report->key, kb_report->modifier.val);
+  // Update inactivity timer and wake BLE if it was sleeping
+  _lastKeyboardActivity = millis();
+  if (_bleManager.isSleeping()) {
+    _bleManager.restart();
+  }
+
+  // Forward to BLE or queue for when the connection is re-established
+  if (_bleManager.isConnected()) {
+    _bleManager.sendKeyboardReport(kb_report->key, kb_report->modifier.val);
+  } else {
+    memcpy(_pendingReport.keys, kb_report->key, 6);
+    _pendingReport.modifiers = kb_report->modifier.val;
+    _pendingReport.valid = true;
+    Serial.println("[BLE] Report queued - waiting for BLE connection");
+  }
 }
 
 bool Bridge::checkDeviceSwitchCombo(const uint8_t *keys) {

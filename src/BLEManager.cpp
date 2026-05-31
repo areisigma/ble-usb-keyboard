@@ -1,8 +1,9 @@
 #include "BLEManager.h"
 #include "Config.h"
+#include <NimBLEDevice.h>
 #include <esp_mac.h>
 
-BLEManager::BLEManager() : _bleCombo(nullptr) {}
+BLEManager::BLEManager() : _bleCombo(nullptr), _sleeping(false) {}
 
 void BLEManager::begin(uint8_t slot, const char *deviceName) {
   setUniqueMac(slot);
@@ -33,6 +34,37 @@ void BLEManager::setBatteryLevel(uint8_t level) {
   if (_bleCombo != nullptr) {
     _bleCombo->setBatteryLevel(level);
   }
+}
+
+void BLEManager::stop() {
+  if (_sleeping)
+    return;
+  _sleeping = true;
+
+  NimBLEDevice::stopAdvertising();
+
+  NimBLEServer *pServer = NimBLEDevice::getServer();
+  if (pServer != nullptr) {
+    uint8_t count = pServer->getConnectedCount();
+    for (uint8_t i = 0; i < count; i++) {
+      pServer->disconnect(pServer->getPeerInfo(i).getConnHandle());
+    }
+  }
+
+  Serial.println("[BLE] Stopped advertising - idle timeout reached");
+}
+
+void BLEManager::restart() {
+  if (!_sleeping)
+    return;
+  _sleeping = false;
+
+  NimBLEDevice::startAdvertising();
+  Serial.println("[BLE] Restarted advertising - keyboard activity detected");
+}
+
+bool BLEManager::isSleeping() const {
+  return _sleeping;
 }
 
 void BLEManager::setUniqueMac(uint8_t slot) {

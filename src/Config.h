@@ -45,6 +45,9 @@
 /** @brief How often to save a battery reading to flash history (milliseconds) - 5 minutes */
 #define BATTERY_HISTORY_INTERVAL_MS 300000UL
 
+/** @brief Disable BLE advertising/connection after this duration of keyboard inactivity (milliseconds) - 5 minutes */
+#define BLE_IDLE_TIMEOUT_MS 300000UL
+
 /** @brief Number of available device slots (maximum 3 recommended) */
 #define NUM_DEVICE_SLOTS 3
 
