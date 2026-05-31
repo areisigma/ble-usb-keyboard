@@ -36,6 +36,15 @@ private:
   static uint8_t _currentSlot;
   static BLEManager _bleManager;
   static Preferences _preferences;
+  static unsigned long _lastKeyboardActivity;
+
+  /** @brief Keyboard report queued while BLE is reconnecting after idle sleep. */
+  struct PendingKeyReport {
+    uint8_t keys[6];
+    uint8_t modifiers;
+    bool valid;
+  };
+  static PendingKeyReport _pendingReport;
 
   /** @brief Callback for processing USB keyboard reports. */
   static void onKeyboardReport(const uint8_t *data, size_t length);

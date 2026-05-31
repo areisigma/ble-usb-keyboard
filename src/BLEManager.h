@@ -39,8 +39,26 @@ public:
    */
   void setBatteryLevel(uint8_t level);
 
+  /**
+   * @brief Stops BLE advertising and disconnects any active connection.
+   * Used to save battery during keyboard inactivity.
+   */
+  void stop();
+
+  /**
+   * @brief Restarts BLE advertising after a stop() call.
+   * Should be called when keyboard activity resumes.
+   */
+  void restart();
+
+  /**
+   * @brief Returns true if BLE was stopped due to idle timeout.
+   */
+  bool isSleeping() const;
+
 private:
   BleCombo *_bleCombo;
+  bool _sleeping;
 
   /**
    * @brief Sets a unique MAC address derived from the base MAC and slot index.
